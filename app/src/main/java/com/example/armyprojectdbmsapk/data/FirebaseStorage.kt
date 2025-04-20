@@ -22,6 +22,88 @@ class FirebaseStorageHelper {
     private val firestore = FirebaseFirestore.getInstance()
 
     /**
+     * Helper method to create a Soldier object from a document
+     */
+    private fun createSoldierFromDocument(document: DocumentSnapshot): Soldier {
+        try {
+            // Try different field name variations
+            val id = document.getLong("id") ?: document.getLong("ID") ?: 0
+            val name = document.getString("name") ?: document.getString("Name") ?: ""
+            val rank = document.getString("rank") ?: document.getString("Rank") ?: ""
+            val sex = document.getString("sex") ?: document.getString("Sex") ?: ""
+            val height = document.getLong("height") ?: document.getLong("Height") ?: 0
+            val weight = document.getLong("weight") ?: document.getLong("Weight") ?: 0
+            val chest = document.getLong("chest") ?: document.getLong("Chest") ?: 0
+            val squadNo = document.getString("squadNo") ?: document.getString("SquadNo") ?: ""
+            val birthPlacePincode = document.getLong("birthPlacePincode") ?: document.getLong("BirthPlacePincode") ?: 0
+            
+            // Try different variations of basic_pay field name
+            val basicPayLong = document.getLong("basic_pay") ?: document.getLong("basicPay") ?: 
+                          document.getLong("BasicPay") ?: document.getLong("BASIC_PAY") ?: 
+                          document.getLong("basic") ?: // Added this field name
+                          0
+            
+            // Add debug print to see the raw document data
+            println("Debug: Raw document data: ${document.data}")
+            println("Debug: basic field = ${document.getLong("basic")}")  // Add this debug line
+            val medals = document.getLong("medals") ?: 0
+            
+            // Handle DOJ as Timestamp or String
+            val doj = try {
+                // Try to get as Timestamp first
+                val timestamp = document.getTimestamp("DOJ") ?: document.getTimestamp("doj")
+                if (timestamp != null) {
+                    // Convert timestamp to a readable date string
+                    val date = timestamp.toDate()
+                    java.text.SimpleDateFormat("dd MMMM yyyy", java.util.Locale.US).format(date)
+                } else {
+                    // Fall back to string if not a timestamp
+                    document.getString("DOJ") ?: document.getString("doj") ?: ""
+                }
+            } catch (e: Exception) {
+                println("Error parsing DOJ: ${e.message}")
+                ""  // Default empty string if parsing fails
+            }
+        
+            println("Creating Soldier with ID: $id, Name: $name, Rank: $rank, DOJ: $doj, Basic Pay: $basicPayLong, Medals: $medals")
+            
+            return Soldier(
+                id = id.toInt(),
+                name = name,
+                rank = rank,
+                sex = sex,
+                height = height.toInt(),
+                weight = weight.toInt(),
+                chest = chest.toInt(),
+                squadNo = squadNo,
+                birthPlacePincode = birthPlacePincode.toInt(),
+                doj = doj,
+                basicPay = basicPayLong.toInt(),  // Use basicPayLong directly here
+                medals = medals.toInt()
+            )
+        } catch (e: Exception) {
+            println("Error creating Soldier object: ${e.message}")
+            e.printStackTrace()
+            
+            // Return a default soldier object to prevent crashes
+            return Soldier(
+                id = 0,
+                name = "",
+                rank = "",
+                sex = "",
+                height = 0,
+                weight = 0,
+                chest = 0,
+                squadNo = "",
+                birthPlacePincode = 0,
+                doj = "",
+                basicPay = 0,
+                medals = 0
+            )
+        }
+    }
+
+    /**
      * Fetch a soldier by ID
      */
     suspend fun getSoldierById(id: Int): Soldier? {
@@ -174,54 +256,44 @@ class FirebaseStorageHelper {
                     // Debug the document data
                     println("Debug: Posting document data: ${document.data}")
                     
-                    // Extract posting fields with different possible field names
-                    val postingId = document.getLong("posting_id") ?: document.getLong("postingId") ?: 0
-                    val soldId = document.getLong("id") ?: document.getLong("soldier_id") ?: document.getLong("soldId") ?: 0
-                    val location = document.getString("location") ?: ""
-                    val startDate = document.getString("start_date") ?: document.getString("startDate") ?: ""
-                    val endDate = document.getString("end_date") ?: document.getString("endDate") ?: ""
+                    // Extract posting fields directly from the document
+                    val id = document.getLong("id") ?: 0
+                    val pincode = document.getLong("pincode") ?: 0
                     
-                    // Create posting object - try different constructor patterns
-                    try {
-                        // Let's try to create the Posting object with just the fields we know exist
-                        val posting = Posting(
-                            id = postingId.toInt()
-                        )
-                        
-                        // Now let's try to set the other fields using reflection
-                        val soldIdField = posting.javaClass.getDeclaredField("soldId")
-                        soldIdField.isAccessible = true
-                        soldIdField.set(posting, soldId.toInt())
-                        
-                        val locationField = posting.javaClass.getDeclaredField("location")
-                        locationField.isAccessible = true
-                        locationField.set(posting, location)
-                        
-                        val startDateField = posting.javaClass.getDeclaredField("startDate")
-                        startDateField.isAccessible = true
-                        startDateField.set(posting, startDate)
-                        
-                        val endDateField = posting.javaClass.getDeclaredField("endDate")
-                        endDateField.isAccessible = true
-                        endDateField.set(posting, endDate)
-                        
-                        println("Debug: Created posting using reflection: $posting")
-                        posting
-                    } catch (e: Exception) {
-                        println("Debug: Error creating posting with reflection: ${e.message}")
-                        
-                        // As a fallback, let's try to use document.toObject
-                        try {
-                            val posting = document.toObject(Posting::class.java)
-                            println("Debug: Created posting using toObject: $posting")
-                            posting
-                        } catch (e2: Exception) {
-                            println("Debug: Error creating posting with toObject: ${e2.message}")
-                            null
+                    // Handle Timestamp conversion
+                    val dateStr = try {
+                        val timestamp = document.getTimestamp("date")
+                        if (timestamp != null) {
+                            // Convert timestamp to a readable date string
+                            val date = timestamp.toDate()
+                            java.text.SimpleDateFormat("dd MMMM yyyy", java.util.Locale.US).format(date)
+                        } else {
+                            document.getString("date") ?: ""
                         }
+                    } catch (e: Exception) {
+                        println("Error parsing date: ${e.message}")
+                        ""
                     }
+                    
+                    // Create a map of the posting data with correct field names
+                    val postingMap = mapOf(
+                        "id" to id,
+                        "date" to dateStr,
+                        "pincode" to pincode
+                    )
+                    
+                    println("Debug: Created posting map: $postingMap")
+                    
+                    // Create a custom DocumentSnapshot with our map
+                    val customDoc = CustomDocumentSnapshot(postingMap)
+                    
+                    // Create the posting using our helper method
+                    val posting = createPostingFromDocument(customDoc)
+                    println("Debug: Created posting: $posting")
+                    posting
                 } catch (e: Exception) {
-                    println("Debug: Error processing posting document: ${e.message}")
+                    println("Debug: Error creating posting: ${e.message}")
+                    e.printStackTrace()
                     null
                 }
             }
@@ -230,84 +302,67 @@ class FirebaseStorageHelper {
             emptyList()
         }
     }
+    
     /**
-     * Helper method to create a Soldier object from a document
+     * Helper class to create a custom DocumentSnapshot
      */
-    private fun createSoldierFromDocument(document: DocumentSnapshot): Soldier {
-        try {
-            // Try different field name variations
-            val id = document.getLong("id") ?: document.getLong("ID") ?: 0
-            val name = document.getString("name") ?: document.getString("Name") ?: ""
-            val rank = document.getString("rank") ?: document.getString("Rank") ?: ""
-            val sex = document.getString("sex") ?: document.getString("Sex") ?: ""
-            val height = document.getLong("height") ?: document.getLong("Height") ?: 0
-            val weight = document.getLong("weight") ?: document.getLong("Weight") ?: 0
-            val chest = document.getLong("chest") ?: document.getLong("Chest") ?: 0
-            val squadNo = document.getString("squadNo") ?: document.getString("SquadNo") ?: ""
-            val birthPlacePincode = document.getLong("birthPlacePincode") ?: document.getLong("BirthPlacePincode") ?: 0
-            
-            // Try different variations of basic_pay field name
-            val basicPayLong = document.getLong("basic_pay") ?: document.getLong("basicPay") ?: 
-                          document.getLong("BasicPay") ?: document.getLong("BASIC_PAY") ?: 
-                          document.getLong("basic") ?: // Added this field name
-                          0
-            
-            // Add debug print to see the raw document data
-            println("Debug: Raw document data: ${document.data}")
-            println("Debug: basic field = ${document.getLong("basic")}")  // Add this debug line
-            val medals = document.getLong("medals") ?: 0
-            
-            // Handle DOJ as Timestamp or String
-            val doj = try {
-                // Try to get as Timestamp first
-                val timestamp = document.getTimestamp("DOJ") ?: document.getTimestamp("doj")
-                if (timestamp != null) {
-                    // Convert timestamp to a readable date string
-                    val date = timestamp.toDate()
-                    java.text.SimpleDateFormat("dd MMMM yyyy", java.util.Locale.US).format(date)
-                } else {
-                    // Fall back to string if not a timestamp
-                    document.getString("DOJ") ?: document.getString("doj") ?: ""
-                }
-            } catch (e: Exception) {
-                println("Error parsing DOJ: ${e.message}")
-                ""  // Default empty string if parsing fails
+    private class CustomDocumentSnapshot(private val data: Map<String, Any?>) {
+        fun getLong(field: String): Long? {
+            return when (val value = data[field]) {
+                is Long -> value
+                is Int -> value.toLong()
+                is String -> value.toLongOrNull()
+                else -> null
             }
+        }
         
-            println("Creating Soldier with ID: $id, Name: $name, Rank: $rank, DOJ: $doj, Basic Pay: $basicPayLong, Medals: $medals")
+        fun getString(field: String): String? {
+            return when (val value = data[field]) {
+                is String -> value
+                else -> value?.toString()
+            }
+        }
+        
+        fun getData(): Map<String, Any?> {
+            return data
+        }
+    }
+    
+    /**
+     * Helper method to create a Posting object from document data
+     */
+    private fun createPostingFromDocument(document: CustomDocumentSnapshot): Posting {
+        try {
+            // Try multiple possible field names for each field
+            val id = document.getLong("posting_id") ?: 
+                     document.getLong("postingId") ?: 
+                     document.getLong("id") ?: 0
+                     
+            val date = document.getString("start_date") ?: 
+                      document.getString("startDate") ?: 
+                      document.getString("date") ?: 
+                      document.getString("Date") ?: ""
+                      
+            val pincode = document.getLong("pincode") ?: 
+                         document.getLong("Pincode") ?: 
+                         document.getLong("location") ?: 0
             
-            return Soldier(
+            println("Debug: Raw posting data: ${document.getData()}")
+            println("Creating Posting with ID: $id, Date: $date, Pincode: $pincode")
+            
+            return Posting(
                 id = id.toInt(),
-                name = name,
-                rank = rank,
-                sex = sex,
-                height = height.toInt(),
-                weight = weight.toInt(),
-                chest = chest.toInt(),
-                squadNo = squadNo,
-                birthPlacePincode = birthPlacePincode.toInt(),
-                doj = doj,
-                basicPay = basicPayLong.toInt(),  // Use basicPayLong directly here
-                medals = medals.toInt()
+                date = date,
+                pincode = pincode.toInt()
             )
         } catch (e: Exception) {
-            println("Error creating Soldier object: ${e.message}")
+            println("Error creating Posting object: ${e.message}")
             e.printStackTrace()
             
-            // Return a default soldier object to prevent crashes
-            return Soldier(
-                id = document.getLong("id")?.toInt() ?: 0,
-                name = document.getString("name") ?: "",
-                rank = "",
-                sex = "",
-                height = 0,
-                weight = 0,
-                chest = 0,
-                squadNo = "",
-                birthPlacePincode = 0,
-                doj = "",
-                basicPay = 0,
-                medals = 0
+            return Posting(
+                id = 0,
+                date = "",
+                pincode = 0
             )
         }
     }
