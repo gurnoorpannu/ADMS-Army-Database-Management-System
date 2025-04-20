@@ -73,11 +73,18 @@ fun SoldierDetailsScreen(
                 value = searchQuery,
                 onValueChange = { viewModel.updateSearchQuery(it) },
                 modifier = Modifier.fillMaxWidth(),
-                colors = TextFieldDefaults.outlinedTextFieldColors(
-                    //Color = Color.White,
-                    cursorColor = Color.White,
+                colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Color.White,
-                    unfocusedBorderColor = Color.Gray
+                    unfocusedBorderColor = Color.Gray,
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White,
+                    cursorColor = Color.White,
+                    focusedLeadingIconColor = Color.White,
+                    unfocusedLeadingIconColor = Color.White,
+                    focusedTrailingIconColor = Color.White,
+                    unfocusedTrailingIconColor = Color.White,
+                    focusedPlaceholderColor = Color.Gray,
+                    unfocusedPlaceholderColor = Color.Gray
                 ),
                 placeholder = { Text("Enter Soldier ID", color = Color.Gray) },
                 keyboardOptions = KeyboardOptions(
@@ -121,9 +128,9 @@ fun SoldierDetailsScreen(
                     keyboardController?.hide()
                 },
                 modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3D5AFE))
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFFFFF))
             ) {
-                Text("Search")
+                Text("Search",color = Color.Black)
             }
             
             Spacer(modifier = Modifier.height(16.dp))
@@ -345,8 +352,8 @@ fun KeyStatsSection(soldier: Soldier, birthLocation: Location?) {
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            InfoBox(title = "BASE PAY", value = "30000")
-            InfoBox(title = "MEDALS", value = "2")
+            InfoBox(title = "BASE PAY", value = soldier.basicPay.toString())
+            InfoBox(title = "MEDALS", value = soldier.medals.toString())
         }
     }
 }
@@ -367,77 +374,77 @@ fun PostingDetailsSection(postings: List<Posting>) {
         Spacer(modifier = Modifier.height(16.dp))
 
         if (postings.isNotEmpty()) {
-            // Show the most recent posting (assuming the list is sorted by date)
-            val latestPosting = postings.first()
+            // Debug print to check postings
+            println("Postings available: ${postings.size}")
+            val selectedPosting = postings.random()
             
-            InfoBox(
-                title = "CURRENT POSTING",
-                value = "Pincode: ${latestPosting.pincode}",
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            InfoBox(
-                title = "DATE OF POSTING",
-                value = latestPosting.date.split(" at ").firstOrNull() ?: latestPosting.date,
-                modifier = Modifier.fillMaxWidth()
-            )
-            
-            // If there are previous postings, show them as well
-            if (postings.size > 1) {
-                Spacer(modifier = Modifier.height(16.dp))
-                
-                Text(
-                    text = "Previous Postings",
-                    style = TextStyle(
-                        fontSize = 16.sp,
-                        fontFamily = FontFamily.Default,
-                        fontWeight = FontWeight(600),
-                        color = Color.White
-                    )
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = Color(0xFF2A2A2A)
                 )
-                
-                Spacer(modifier = Modifier.height(8.dp))
-                
-                postings.drop(1).forEach { posting ->
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(
-                            text = posting.date.split(" at ").firstOrNull() ?: posting.date,
-                            color = Color.Gray,
-                            fontSize = 14.sp
-                        )
-                        
-                        Text(
-                            text = "Pincode: ${posting.pincode}",
-                            color = Color.Gray,
-                            fontSize = 14.sp
-                        )
-                    }
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    // Posting ID
+                    Text(
+                        text = "Posting ID",
+                        color = Color.Gray,
+                        fontSize = 14.sp
+                    )
+                    Text(
+                        text = selectedPosting.id.toString(),
+                        color = Color.White,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold
+                    )
                     
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
+                    
+                    // Posting Date
+                    Text(
+                        text = "Date",
+                        color = Color.Gray,
+                        fontSize = 14.sp
+                    )
+                    Text(
+                        text = selectedPosting.date,
+                        color = Color.White,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    
+                    Spacer(modifier = Modifier.height(12.dp))
+                    
+                    // Posting Location (Pincode)
+                    Text(
+                        text = "Location (Pincode)",
+                        color = Color.Gray,
+                        fontSize = 14.sp
+                    )
+                    Text(
+                        text = selectedPosting.pincode.toString(),
+                        color = Color.White,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
         } else {
             Text(
                 text = "No posting records found",
                 color = Color.Gray,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center
             )
         }
     }
 }
 
-
-
 @Composable
 fun VisitingDetailsSection(visits: List<Visited>) {
     Column {
         Text(
-            text = "Visited Details",
+            text = "Visit History:",
             style = TextStyle(
                 fontSize = 18.sp,
                 fontFamily = FontFamily.Default,
@@ -449,59 +456,65 @@ fun VisitingDetailsSection(visits: List<Visited>) {
         Spacer(modifier = Modifier.height(16.dp))
 
         if (visits.isNotEmpty()) {
-            // Show the most recent visit (assuming the list is sorted by date)
-            val latestVisit = visits.first()
-            
-            InfoBox(
-                title = "LAST VISITED",
-                value = "Pincode: ${latestVisit.pincode}",
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            InfoBox(
-                title = "DATE OF VISIT",
-                value = latestVisit.date.split(" at ").firstOrNull() ?: latestVisit.date,
-                modifier = Modifier.fillMaxWidth()
-            )
-            
-            // If there are previous visits, show them as well
-            if (visits.size > 1) {
-                Spacer(modifier = Modifier.height(16.dp))
-                
-                Text(
-                    text = "Previous Visits",
-                    style = TextStyle(
-                        fontSize = 16.sp,
-                        fontFamily = FontFamily.Default,
-                        fontWeight = FontWeight(600),
-                        color = Color.White
+            visits.forEach { visit ->
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color(0xFF2A2A2A)
                     )
-                )
-                
-                Spacer(modifier = Modifier.height(8.dp))
-                
-                visits.drop(1).forEach { visit ->
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(
-                            text = visit.date.split(" at ").firstOrNull() ?: visit.date,
-                            color = Color.Gray,
-                            fontSize = 14.sp
-                        )
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Column {
+                                Text(
+                                    text = "Date",
+                                    color = Color.Gray,
+                                    fontSize = 12.sp
+                                )
+                                Text(
+                                    text = visit.date,
+                                    color = Color.White,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                            
+                            Column(horizontalAlignment = Alignment.End) {
+                                Text(
+                                    text = "Pincode",
+                                    color = Color.Gray,
+                                    fontSize = 12.sp
+                                )
+                                Text(
+                                    text = visit.pincode.toString(),
+                                    color = Color.White,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                        
+                        Spacer(modifier = Modifier.height(8.dp))
                         
                         Text(
-                            text = "Pincode: ${visit.pincode}",
+                            text = "Reason",
                             color = Color.Gray,
-                            fontSize = 14.sp
+                            fontSize = 12.sp
+                        )
+                        Text(
+                            text = visit.reason,
+                            color = Color.White,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold
                         )
                     }
-                    
-                    Spacer(modifier = Modifier.height(4.dp))
                 }
+                Spacer(modifier = Modifier.height(4.dp))
             }
         } else {
             Text(
@@ -559,34 +572,39 @@ fun InfoBox(
             .border(
                 width = 1.dp,
                 color = Color(0x33FFFFFF),
-                shape = RoundedCornerShape(8.dp)
+                shape = RoundedCornerShape(12.dp)
             )
             .background(
                 color = Color(0x2EFFFFFF),
-                shape = RoundedCornerShape(8.dp)
+                shape = RoundedCornerShape(12.dp)
             )
-            .padding(12.dp)
+            .padding(16.dp)
     ) {
-        Column(modifier = Modifier.align(Alignment.Center)) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.Start
+        ) {
             Text(
                 text = title,
                 style = TextStyle(
                     fontSize = 12.sp,
                     fontFamily = FontFamily.Default,
                     fontWeight = FontWeight(400),
-                    color = Color(0xFF9E9E9E)
+                    color = Color(0xFF9E9E9E),
+                    textAlign = TextAlign.Start
                 )
             )
 
-            Spacer(modifier = Modifier.height(7.dp))
+            Spacer(modifier = Modifier.height(4.dp))
 
             Text(
                 text = value,
                 style = TextStyle(
                     fontSize = 20.sp,
                     fontFamily = FontFamily.Default,
-                    fontWeight = FontWeight(700),
-                    color = Color.White
+                    fontWeight = FontWeight(600),
+                    color = Color.White,
+                    textAlign = TextAlign.Start
                 )
             )
         }

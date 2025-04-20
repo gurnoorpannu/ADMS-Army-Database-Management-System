@@ -63,7 +63,16 @@ class SoldierViewModel : ViewModel() {
                 // Fetch related data
                 val soldierStatus = fetchSoldierStatus(soldierId)
                 val postings = fetchSoldierPostings(soldierId)
-                val visits = fetchSoldierVisits(soldierId)
+                
+                // Fetch visits and randomly select 2 if there are more than 2
+                val allVisits = fetchSoldierVisits(soldierId)
+                val visits = if (allVisits.size > 2) {
+                    // Randomly select 2 visits
+                    allVisits.shuffled().take(2)
+                } else {
+                    // Use all visits if there are 2 or fewer
+                    allVisits
+                }
 
                 // Fetch birth location
                 val birthLocation = fetchBirthLocation(soldier)
@@ -98,8 +107,9 @@ class SoldierViewModel : ViewModel() {
     }
     
     private suspend fun fetchSoldierPostings(id: Int): List<Posting> {
+        println("Debug: Fetching postings for soldier ID: $id")
         val postings = firebaseHelper.getPostingsForSoldier(id)
-        println("Fetched postings: $postings")
+        println("Debug: Fetched ${postings.size} postings: $postings")
         return postings
     }
     

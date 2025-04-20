@@ -13,9 +13,10 @@ data class Soldier(
     val chest: Int = 0,
     val squadNo: String = "",
     val birthPlacePincode: Int = 0,
-    val doj: String = ""
+    val doj: String = "",
+    val basicPay: Int = 0,
+    val medals: Int = 0
 )
-
 /**
  * SoldierStatus data model representing the current status of a soldier
  */
@@ -34,7 +35,6 @@ data class Posting(
     val date: String = "",
     val pincode: Int = 0
 )
-
 /**
  * Visited data model representing a soldier's visit record
  */

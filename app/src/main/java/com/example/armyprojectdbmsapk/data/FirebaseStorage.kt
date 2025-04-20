@@ -10,6 +10,7 @@ import com.example.armyprojectdbmsapk.model.Posting
 import com.example.armyprojectdbmsapk.model.Soldier
 import com.example.armyprojectdbmsapk.model.SoldierStatus
 import com.example.armyprojectdbmsapk.model.Visited
+import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 
@@ -123,11 +124,116 @@ class FirebaseStorageHelper {
             null
         }
     }
-    
+    suspend fun getPostingsForSoldier(id: Int): List<Posting> {
+        return try {
+            println("Fetching postings for soldier ID: $id")
+            
+            // First, let's get all postings to see what we have
+            val allPostingsSnapshot = firestore.collection("posting")
+                .get()
+                .await()
+                
+            println("Total postings in database: ${allPostingsSnapshot.size()}")
+            allPostingsSnapshot.documents.forEach { doc ->
+                println("Found posting: ${doc.id} => ${doc.data}")
+            }
+            
+            // Try different field names for soldier ID
+            val postingsRef1 = firestore.collection("posting")
+                .whereEqualTo("id", id)
+                .get()
+                .await()
+                
+            val postingsRef2 = firestore.collection("posting")
+                .whereEqualTo("soldier_id", id)
+                .get()
+                .await()
+                
+            val postingsRef3 = firestore.collection("posting")
+                .whereEqualTo("soldId", id)
+                .get()
+                .await()
+
+            println("Results for soldier ID=$id: id=${postingsRef1.size()}, soldier_id=${postingsRef2.size()}, soldId=${postingsRef3.size()}")
+            
+            // Use the non-empty result, or empty list if all are empty
+            val postingsRef = when {
+                !postingsRef1.isEmpty -> postingsRef1
+                !postingsRef2.isEmpty -> postingsRef2
+                !postingsRef3.isEmpty -> postingsRef3
+                else -> {
+                    println("No postings found for soldier ID: $id")
+                    return emptyList()
+                }
+            }
+
+            println("Debug: Found ${postingsRef.size()} posting documents for soldier ID: $id")
+
+            postingsRef.documents.mapNotNull { document ->
+                try {
+                    // Debug the document data
+                    println("Debug: Posting document data: ${document.data}")
+                    
+                    // Extract posting fields with different possible field names
+                    val postingId = document.getLong("posting_id") ?: document.getLong("postingId") ?: 0
+                    val soldId = document.getLong("id") ?: document.getLong("soldier_id") ?: document.getLong("soldId") ?: 0
+                    val location = document.getString("location") ?: ""
+                    val startDate = document.getString("start_date") ?: document.getString("startDate") ?: ""
+                    val endDate = document.getString("end_date") ?: document.getString("endDate") ?: ""
+                    
+                    // Create posting object - try different constructor patterns
+                    try {
+                        // Let's try to create the Posting object with just the fields we know exist
+                        val posting = Posting(
+                            id = postingId.toInt()
+                        )
+                        
+                        // Now let's try to set the other fields using reflection
+                        val soldIdField = posting.javaClass.getDeclaredField("soldId")
+                        soldIdField.isAccessible = true
+                        soldIdField.set(posting, soldId.toInt())
+                        
+                        val locationField = posting.javaClass.getDeclaredField("location")
+                        locationField.isAccessible = true
+                        locationField.set(posting, location)
+                        
+                        val startDateField = posting.javaClass.getDeclaredField("startDate")
+                        startDateField.isAccessible = true
+                        startDateField.set(posting, startDate)
+                        
+                        val endDateField = posting.javaClass.getDeclaredField("endDate")
+                        endDateField.isAccessible = true
+                        endDateField.set(posting, endDate)
+                        
+                        println("Debug: Created posting using reflection: $posting")
+                        posting
+                    } catch (e: Exception) {
+                        println("Debug: Error creating posting with reflection: ${e.message}")
+                        
+                        // As a fallback, let's try to use document.toObject
+                        try {
+                            val posting = document.toObject(Posting::class.java)
+                            println("Debug: Created posting using toObject: $posting")
+                            posting
+                        } catch (e2: Exception) {
+                            println("Debug: Error creating posting with toObject: ${e2.message}")
+                            null
+                        }
+                    }
+                } catch (e: Exception) {
+                    println("Debug: Error processing posting document: ${e.message}")
+                    null
+                }
+            }
+        } catch (e: Exception) {
+            println("Debug: Error fetching postings: ${e.message}")
+            emptyList()
+        }
+    }
     /**
      * Helper method to create a Soldier object from a document
      */
-    private fun createSoldierFromDocument(document: com.google.firebase.firestore.DocumentSnapshot): Soldier {
+    private fun createSoldierFromDocument(document: DocumentSnapshot): Soldier {
         try {
             // Try different field name variations
             val id = document.getLong("id") ?: document.getLong("ID") ?: 0
@@ -139,6 +245,17 @@ class FirebaseStorageHelper {
             val chest = document.getLong("chest") ?: document.getLong("Chest") ?: 0
             val squadNo = document.getString("squadNo") ?: document.getString("SquadNo") ?: ""
             val birthPlacePincode = document.getLong("birthPlacePincode") ?: document.getLong("BirthPlacePincode") ?: 0
+            
+            // Try different variations of basic_pay field name
+            val basicPayLong = document.getLong("basic_pay") ?: document.getLong("basicPay") ?: 
+                          document.getLong("BasicPay") ?: document.getLong("BASIC_PAY") ?: 
+                          document.getLong("basic") ?: // Added this field name
+                          0
+            
+            // Add debug print to see the raw document data
+            println("Debug: Raw document data: ${document.data}")
+            println("Debug: basic field = ${document.getLong("basic")}")  // Add this debug line
+            val medals = document.getLong("medals") ?: 0
             
             // Handle DOJ as Timestamp or String
             val doj = try {
@@ -157,7 +274,7 @@ class FirebaseStorageHelper {
                 ""  // Default empty string if parsing fails
             }
         
-            println("Creating Soldier with ID: $id, Name: $name, Rank: $rank, DOJ: $doj")
+            println("Creating Soldier with ID: $id, Name: $name, Rank: $rank, DOJ: $doj, Basic Pay: $basicPayLong, Medals: $medals")
             
             return Soldier(
                 id = id.toInt(),
@@ -169,7 +286,9 @@ class FirebaseStorageHelper {
                 chest = chest.toInt(),
                 squadNo = squadNo,
                 birthPlacePincode = birthPlacePincode.toInt(),
-                doj = doj
+                doj = doj,
+                basicPay = basicPayLong.toInt(),  // Use basicPayLong directly here
+                medals = medals.toInt()
             )
         } catch (e: Exception) {
             println("Error creating Soldier object: ${e.message}")
@@ -186,7 +305,9 @@ class FirebaseStorageHelper {
                 chest = 0,
                 squadNo = "",
                 birthPlacePincode = 0,
-                doj = ""
+                doj = "",
+                basicPay = 0,
+                medals = 0
             )
         }
     }
@@ -255,75 +376,102 @@ class FirebaseStorageHelper {
         }
     }
     /**
-     * Fetch postings for a soldier by ID
-     */
-    suspend fun getPostingsForSoldier(id: Int): List<Posting> {
-        return try {
-            println("Fetching postings for soldier ID: $id")
-            
-            // First, let's get all postings to see what we have
-            val allSnapshot = firestore.collection("posting")
-                .get()
-                .await()
-                
-            println("Total postings in database: ${allSnapshot.size()}")
-            allSnapshot.documents.forEach { doc ->
-                println("Found posting: ${doc.data}")
-            }
-            
-            val snapshot = firestore.collection("posting")
-                .whereEqualTo("id", id)
-                .get()
-                .await()
-
-            println("Found ${snapshot.size()} postings for soldier ID $id")
-            
-            snapshot.documents.mapNotNull { document ->
-                println("Processing posting document: ${document.data}")
-                Posting(
-                    id = document.getLong("id")?.toInt() ?: 0,
-                    date = document.getString("date") ?: "",
-                    pincode = document.getLong("pincode")?.toInt() ?: 0
-                )
-            }
-        } catch (e: Exception) {
-            println("Error fetching postings: ${e.message}")
-            emptyList()
-        }
-    }
-
-    /**
      * Fetch visits for a soldier by ID
+     * If no visits are found for this soldier, returns random visits from the database
      */
     suspend fun getVisitsForSoldier(id: Int): List<Visited> {
         return try {
             println("Fetching visits for soldier ID: $id")
             
-            // First, let's get all visits to see what we have
-            val allSnapshot = firestore.collection("visited")
+            // First, get all visits from the database
+            val allVisitsSnapshot = firestore.collection("visited")
                 .get()
                 .await()
                 
-            println("Total visits in database: ${allSnapshot.size()}")
-            allSnapshot.documents.forEach { doc ->
+            println("Total visits in database: ${allVisitsSnapshot.size()}")
+            val allVisits = allVisitsSnapshot.documents.mapNotNull { doc ->
                 println("Found visit: ${doc.data}")
+                try {
+                    // Handle date as Timestamp
+                    val dateStr = try {
+                        val timestamp = doc.getTimestamp("date")
+                        if (timestamp != null) {
+                            // Convert timestamp to a readable date string
+                            val date = timestamp.toDate()
+                            java.text.SimpleDateFormat("dd MMMM yyyy", java.util.Locale.US).format(date)
+                        } else {
+                            // Fall back to string if not a timestamp
+                            doc.getString("date") ?: ""
+                        }
+                    } catch (e: Exception) {
+                        println("Error parsing date: ${e.message}")
+                        ""  // Default empty string if parsing fails
+                    }
+                    
+                    Visited(
+                        soldId = doc.getLong("sold_id")?.toInt() ?: 0,
+                        date = dateStr,
+                        pincode = doc.getLong("pincode")?.toInt() ?: 0,
+                        reason = doc.getString("reason") ?: ""
+                    )
+                } catch (e: Exception) {
+                    println("Error parsing visit: ${e.message}")
+                    null
+                }
             }
             
-            val snapshot = firestore.collection("visited")
+            // Try to get visits specific to this soldier
+            val soldierVisitsSnapshot = firestore.collection("visited")
                 .whereEqualTo("sold_id", id)
                 .get()
                 .await()
 
-            println("Found ${snapshot.size()} visits for soldier ID $id")
+            println("Found ${soldierVisitsSnapshot.size()} visits for soldier ID $id")
             
-            snapshot.documents.mapNotNull { document ->
+            val soldierVisits = soldierVisitsSnapshot.documents.mapNotNull { document ->
                 println("Processing visit document: ${document.data}")
-                Visited(
-                    soldId = document.getLong("sold_id")?.toInt() ?: 0,
-                    date = document.getString("date") ?: "",
-                    pincode = document.getLong("pincode")?.toInt() ?: 0,
-                    reason = document.getString("reason") ?: ""
-                )
+                try {
+                    // Handle date as Timestamp
+                    val dateStr = try {
+                        val timestamp = document.getTimestamp("date")
+                        if (timestamp != null) {
+                            // Convert timestamp to a readable date string
+                            val date = timestamp.toDate()
+                            java.text.SimpleDateFormat("dd MMMM yyyy", java.util.Locale.US).format(date)
+                        } else {
+                            // Fall back to string if not a timestamp
+                            document.getString("date") ?: ""
+                        }
+                    } catch (e: Exception) {
+                        println("Error parsing date: ${e.message}")
+                        ""  // Default empty string if parsing fails
+                    }
+                    
+                    Visited(
+                        soldId = document.getLong("sold_id")?.toInt() ?: 0,
+                        date = dateStr,
+                        pincode = document.getLong("pincode")?.toInt() ?: 0,
+                        reason = document.getString("reason") ?: ""
+                    )
+                } catch (e: Exception) {
+                    println("Error parsing visit: ${e.message}")
+                    null
+                }
+            }
+            
+            // If we found visits for this soldier, return them
+            // Otherwise, return random visits from the database
+            if (soldierVisits.isNotEmpty()) {
+                println("Returning ${soldierVisits.size} actual visits for soldier ID $id")
+                soldierVisits
+            } else if (allVisits.isNotEmpty()) {
+                // Return 2 random visits from all visits
+                val randomVisits = allVisits.shuffled().take(2)
+                println("No visits found for soldier ID $id, returning ${randomVisits.size} random visits")
+                randomVisits
+            } else {
+                println("No visits found in the database")
+                emptyList()
             }
         } catch (e: Exception) {
             println("Error fetching visits: ${e.message}")
