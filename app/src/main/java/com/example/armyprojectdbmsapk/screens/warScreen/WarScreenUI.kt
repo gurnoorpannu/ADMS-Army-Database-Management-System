@@ -188,7 +188,7 @@ private fun WarCard(war: War) {
                 color = Color.White
             )
             Text(
-                text = "Location: ${war.pincode}",
+                text = "Location(Pincode): ${war.pincode}",
                 style = MaterialTheme.typography.bodyMedium,
                 color = Color.White
             )
