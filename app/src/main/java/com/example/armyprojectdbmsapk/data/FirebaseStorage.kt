@@ -744,4 +744,47 @@ class FirebaseStorageHelper {
             }
         }
     }
+
+    /**
+     * Fetch all wars and categorize them by status
+     */
+    suspend fun getAllWars(): Pair<List<War>, List<War>> {
+        return try {
+            val snapshot = firestore.collection("war")
+                .get()
+                .await()
+
+            val (pastWars, ongoingWars) = snapshot.documents.mapNotNull { document ->
+                try {
+                    // Handle date as Timestamp
+                    val dateStr = try {
+                        val timestamp = document.getTimestamp("DateNo")
+                        if (timestamp != null) {
+                            // Convert timestamp to a readable date string
+                            val date = timestamp.toDate()
+                            java.text.SimpleDateFormat("dd MMMM yyyy", java.util.Locale.US).format(date)
+                        } else {
+                            document.getString("DateNo") ?: ""
+                        }
+                    } catch (e: Exception) {
+                        document.getString("DateNo") ?: ""
+                    }
+
+                    War(
+                        dateNo = dateStr,
+                        status = document.getLong("Status")?.toInt() ?: 0,
+                        pincode = document.getLong("pincode")?.toInt() ?: 0
+                    )
+                } catch (e: Exception) {
+                    println("Error parsing war document: ${e.message}")
+                    null
+                }
+            }.partition { it.status == 0 } // 0 for past wars, 1 for ongoing
+
+            Pair(pastWars, ongoingWars)
+        } catch (e: Exception) {
+            println("Error fetching wars: ${e.message}")
+            Pair(emptyList(), emptyList())
+        }
+    }
 }

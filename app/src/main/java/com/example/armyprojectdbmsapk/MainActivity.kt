@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.armyprojectdbmsapk.screens.soldierDetailScreen.SoldierDetailsScreen
+import com.example.armyprojectdbmsapk.screens.warScreen.WarScreen
 import com.example.armyprojectdbmsapk.ui.theme.ArmyProjectDBMSApkTheme
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -30,7 +31,8 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize()
                 ) {
                     // Call the ADMS UI screen we created
-                    SoldierDetailsScreen()
+                   // SoldierDetailsScreen()
+                    WarScreen()
                 }
             }
         }
