@@ -58,10 +58,18 @@ data class Location(
 /**
  * Battalion data model representing a military unit
  */
+
 data class Battalion(
-    val battalionName: String = "",
-    val captainId: Int = 0,
-    val totalCapacity: Int = 0,
+    val id: String = "",
+    val name: String = "",
+    val capacity: Int = 0
+)
+
+data class BattalionDetail(
+    val id: String = "",
+    val Battalion_name: String = "",  // Matches the Firestore field
+    val captain_id: Int = 0,
+    val total_capacity: Int = 0,
     val year: Int = 0
 )
 
@@ -70,9 +78,16 @@ data class Battalion(
  */
 data class Weapon(
     val weaponId: Int = 0,
-    val name: String = ""
+    val name: String = "",
+    val manufacturer: String = "",
+    val manufacturerDate: String = "",
+    val caliber: Double = 0.0,
+    val range: Long = 0,
+    val total: Int = 0,
+    val imageURL: String = "",
+    val category: String = "Assault Rifle",
+    val description: String = "Iconic, rugged, weapon known for reliability and impact."
 )
-
 /**
  * Inventory data model representing a weapon inventory record
  */

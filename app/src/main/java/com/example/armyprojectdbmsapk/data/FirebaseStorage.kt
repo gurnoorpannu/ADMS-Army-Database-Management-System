@@ -1,6 +1,8 @@
 package com.example.armyprojectdbmsapk.data
 
+//import com.example.armyprojectdbmsapk.model.Battalion
 import com.example.armyprojectdbmsapk.model.Battalion
+import com.example.armyprojectdbmsapk.model.BattalionDetail
 import com.example.armyprojectdbmsapk.model.Weapon
 import com.example.armyprojectdbmsapk.model.Inventory
 import com.example.armyprojectdbmsapk.model.Location
@@ -557,29 +559,68 @@ class FirebaseStorageHelper {
             null
         }
     }
+
+    /**
+     * Fetch all battalion details
+     */
+    fun getBattalions(onSuccess: (List<Battalion>) -> Unit, onError: (Exception) -> Unit) {
+        firestore.collection("Battalion")
+            .get()
+            .addOnSuccessListener { documents ->
+                val battalionList = documents.mapNotNull { document ->
+                    try {
+                        val id = document.id
+                        val battalionName = document.getString("Battalion_name") ?: ""
+                        val capacity = document.getLong("total_capacity")?.toInt() ?: 0
+
+                        Battalion(id = id, name = battalionName, capacity = capacity)
+                    } catch (e: Exception) {
+                        null
+                    }
+                }
+                onSuccess(battalionList)
+            }
+            .addOnFailureListener { exception ->
+                onError(exception)
+            }
+    }
+
+
     /**
      * Fetch battalion details by ID
      */
-    suspend fun getBattalionById(id: Int): Battalion? {
-        return try {
-            val snapshot = firestore.collection("Battalion")
-                .whereEqualTo("captain_id", id)
-                .get()
-                .await()
 
-            if (snapshot.isEmpty) return null
-
-            val document = snapshot.documents.first()
-            Battalion(
-                battalionName = document.getString("battalion_name") ?: "",
-                captainId = document.getLong("captain_id")?.toInt() ?: 0,
-                totalCapacity = document.getLong("total_capacity")?.toInt() ?: 0,
-                year = document.getLong("year")?.toInt() ?: 0
-            )
-        } catch (e: Exception) {
-            null
-        }
+    fun getBattalionDetail(
+        battalionId: String,
+        onSuccess: (BattalionDetail) -> Unit,
+        onError: (Exception) -> Unit
+    ) {
+        firestore.collection("Battalion").document(battalionId)
+            .get()
+            .addOnSuccessListener { document ->
+                if (document != null && document.exists()) {
+                    try {
+                        val battalionDetail = BattalionDetail(
+                            id = document.id,
+                            Battalion_name = document.getString("Battalion_name") ?: "",  // Firestore field is still lowercase
+                            captain_id = document.getLong("captain_id")?.toInt() ?: 0,
+                            total_capacity = document.getLong("total_capacity")?.toInt() ?: 0,
+                            year = document.getLong("year")?.toInt() ?: 0
+                        )
+                        onSuccess(battalionDetail)
+                    } catch (e: Exception) {
+                        onError(e)
+                    }
+                } else {
+                    onError(Exception("Battalion not found"))
+                }
+            }
+            .addOnFailureListener { exception ->
+                onError(exception)
+            }
     }
+
+
 
     /**
      * Fetch weapon details by ID
