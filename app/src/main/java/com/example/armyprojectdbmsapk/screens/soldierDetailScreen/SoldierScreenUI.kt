@@ -303,6 +303,9 @@ fun PostingDetailsSection(postings: List<Posting>) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Add debug print
+        println("Number of postings to display: ${postings.size}")
+        
         if (postings.isNotEmpty()) {
             // Debug print to check postings
             println("Postings available: ${postings.size}")

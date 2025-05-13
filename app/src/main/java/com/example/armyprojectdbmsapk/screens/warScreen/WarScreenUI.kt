@@ -79,9 +79,8 @@ fun WarScreen(
                         .weight(1f)
                         .padding(end = 8.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (selectedTab == 0) Color.White 
-                                       else Color.Gray,
-                        contentColor = Color.Black
+                        containerColor = Color(0xFF4CAF50),
+                        contentColor = Color.White
                     )
                 ) {
                     Text("Past Wars")
@@ -92,9 +91,8 @@ fun WarScreen(
                         .weight(1f)
                         .padding(start = 8.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (selectedTab == 1) Color.White 
-                                       else Color.Gray,
-                        contentColor = Color.Black
+                        containerColor = Color(0xFF4CAF50),
+                        contentColor = Color.White
                     )
                 ) {
                     Text("Ongoing Wars")

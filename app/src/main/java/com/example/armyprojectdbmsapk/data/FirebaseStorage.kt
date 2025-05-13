@@ -34,7 +34,10 @@ class FirebaseStorageHelper {
             val rank = document.getString("rank") ?: document.getString("Rank") ?: ""
             val sex = document.getString("sex") ?: document.getString("Sex") ?: ""
             val height = document.getLong("height") ?: document.getLong("Height") ?: 0
-            val weight = document.getLong("weight") ?: document.getLong("Weight") ?: 0
+            val weight = document.getLong("weight") ?: document.getLong("Weight") ?:
+            document.getLong("WEIGHT") ?: // Added uppercase variant
+            document.getLong("wt") ?: // Added common abbreviation
+            0
             val chest = document.getLong("chest") ?: document.getLong("Chest") ?: 0
             val squadNo = document.getString("squadNo") ?: document.getString("SquadNo") ?: ""
             val birthPlacePincode = document.getLong("birthPlacePincode") ?: document.getLong("BirthPlacePincode") ?: 0

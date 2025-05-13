@@ -158,8 +158,11 @@ fun ExploreDatabaseScreen(
                     containerColor = Color(0xFF212121),
                     unfocusedBorderColor = Color(0xFF333333),
                     focusedBorderColor = Color(0xFF555555),
-                    //textColor = Color.White
+                    cursorColor = Color.White,
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White
                 ),
+                textStyle = TextStyle(color = Color.White),
                 singleLine = true
             )
 
@@ -252,11 +255,11 @@ fun ExploreDatabaseScreen(
 
                     // Activity Items
                     ActivityItem(
-                        activity = "Raj Verma Got Promoted to Captain",
+                        activity = "Raj Verma Got Promoted",
                         date = "02/04/2025"
                     )
                     ActivityItem(
-                        activity = "Soldier Vikram Singh Got Retired",
+                        activity = "Vikram Singh Got Retired",
                         date = "13/03/2025"
                     )
                     ActivityItem(
