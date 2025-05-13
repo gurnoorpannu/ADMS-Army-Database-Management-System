@@ -19,7 +19,8 @@ import androidx.compose.ui.text.style.TextAlign
 @Composable
 fun WarScreen(
     viewModel: WarScreenViewModel = viewModel(),
-    onNavigateBack: () -> Unit = {}
+    onBackClick: () -> Unit = {},
+    onWarClick: (String) -> Unit = {}
 ) {
     var selectedTab by remember { mutableStateOf(0) }
     val pastWars by remember { viewModel.pastWars }
@@ -45,7 +46,7 @@ fun WarScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(
-                    onClick = onNavigateBack,
+                    onClick = onBackClick, // Changed from onNavigateBack to onBackClick
                     modifier = Modifier.size(48.dp)
                 ) {
                     Icon(

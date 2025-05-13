@@ -46,7 +46,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun SoldierDetailsScreen(
     viewModel: SoldierViewModel = viewModel(),
-    onBackClick: () -> Unit = {}
+    onBackClick: () -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
@@ -54,7 +54,7 @@ fun SoldierDetailsScreen(
     val errorMessage by viewModel.errorMessage.collectAsState()
     val keyboardController = LocalSoftwareKeyboardController.current
     val coroutineScope = rememberCoroutineScope()
-    
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -67,7 +67,7 @@ fun SoldierDetailsScreen(
         ) {
             TopBar(onBackClick = onBackClick)
             Spacer(modifier = Modifier.height(16.dp))
-            
+
             // Search Bar
             OutlinedTextField(
                 value = searchQuery,
@@ -118,9 +118,9 @@ fun SoldierDetailsScreen(
                     }
                 }
             )
-            
+
             Spacer(modifier = Modifier.height(16.dp))
-            
+
             // Search Button
             Button(
                 onClick = {
@@ -132,16 +132,16 @@ fun SoldierDetailsScreen(
             ) {
                 Text("Search",color = Color.Black)
             }
-            
+
             Spacer(modifier = Modifier.height(16.dp))
-            
+
             // Loading indicator
             if (isLoading) {
                 Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator(color = Color.White)
                 }
             }
-            
+
             // Error message
             errorMessage?.let { error ->
                 Text(
@@ -151,7 +151,7 @@ fun SoldierDetailsScreen(
                     textAlign = TextAlign.Center
                 )
             }
-            
+
             // Content based on search result
             if (uiState.soldier != null && !isLoading) {
                 Column(
