@@ -23,10 +23,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.example.armyprojectdbmsapk.R
 
 @Composable
-fun ADMSApp() {
+fun ADMSApp(
+    navController: NavHostController = rememberNavController(),
+    onExploreDatabase: () -> Unit = {}
+) {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -150,7 +155,7 @@ fun ADMSApp() {
 
             // Explore Database Button
             Button(
-                onClick = { /* TODO: Implement action */ },
+                onClick = onExploreDatabase,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(48.dp),
