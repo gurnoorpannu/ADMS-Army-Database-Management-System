@@ -53,31 +53,43 @@ class SoldierViewModel : ViewModel() {
                 _errorMessage.value = null
 
                 val numericId = soldierId.toIntOrNull()
-
-                if (numericId != null) {
-                    // Query Firestore to find the document with matching soldier_id
-                    val querySnapshot = firestore.collection("soldier")
-                        .whereEqualTo("soldier_id", numericId)
-                        .get()
-                        .await()
-
-                    if (!querySnapshot.isEmpty) {
-                        // Get the first document that matches
-                        val documentSnapshot = querySnapshot.documents[0]
-                        // Call the document ID version to fetch full details
-                        loadSoldierByDocId(documentSnapshot.id)
-                    } else {
-                        _errorMessage.value = "No soldier found with ID: $numericId"
-                        _isLoading.value = false
-                    }
-                } else {
-                    _errorMessage.value = "Invalid soldier ID: $soldierId"
+                if (numericId == null) {
+                    _errorMessage.value = "Please enter a valid numeric ID"
                     _isLoading.value = false
+                    return@launch
                 }
+
+                // First try with integer ID
+                val soldier = firebaseHelper.getSoldierById(numericId)
+                if (soldier == null) {
+                    _errorMessage.value = "No soldier found with ID: $numericId"
+                    _isLoading.value = false
+                    return@launch
+                }
+
+                // If soldier is found, fetch all related data
+                val soldierStatus = fetchSoldierStatus(numericId)
+                val postings = fetchSoldierPostings(numericId)
+                val allVisits = fetchSoldierVisits(numericId)
+                val visits = if (allVisits.size > 2) {
+                    allVisits.shuffled().take(2)
+                } else {
+                    allVisits
+                }
+                val birthLocation = fetchBirthLocation(soldier)
+
+                // Update UI state with all the data
+                _uiState.value = SoldierUiState(
+                    soldier = soldier,
+                    soldierStatus = soldierStatus,
+                    postings = postings,
+                    visits = visits,
+                    birthLocation = birthLocation
+                )
             } catch (e: Exception) {
                 _errorMessage.value = "Error searching for soldier: ${e.message}"
-                println("Error searching for soldier: ${e.message}")
                 e.printStackTrace()
+            } finally {
                 _isLoading.value = false
             }
         }

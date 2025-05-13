@@ -252,16 +252,16 @@ fun ExploreDatabaseScreen(
 
                     // Activity Items
                     ActivityItem(
-                        activity = "John Abc got promoted",
-                        date = "02/12/2008"
+                        activity = "Raj Verma Got Promoted to Captain",
+                        date = "02/04/2025"
                     )
                     ActivityItem(
-                        activity = "John Abc got promoted",
-                        date = "02/12/2008"
+                        activity = "Soldier Vikram Singh Got Retired",
+                        date = "13/03/2025"
                     )
                     ActivityItem(
-                        activity = "John Abc got promoted",
-                        date = "02/12/2008"
+                        activity = "Captain Disha Meets PM",
+                        date = "02/12/2024"
                     )
                 }
             }

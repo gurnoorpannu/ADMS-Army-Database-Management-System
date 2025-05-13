@@ -49,11 +49,8 @@ fun SoldierDetailsScreen(
     onBackClick: () -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val searchQuery by viewModel.searchQuery.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
-    val keyboardController = LocalSoftwareKeyboardController.current
-    val coroutineScope = rememberCoroutineScope()
 
     Box(
         modifier = Modifier
@@ -66,73 +63,6 @@ fun SoldierDetailsScreen(
                 .padding(horizontal = 16.dp)
         ) {
             TopBar(onBackClick = onBackClick)
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Search Bar
-            OutlinedTextField(
-                value = searchQuery,
-                onValueChange = { viewModel.updateSearchQuery(it) },
-                modifier = Modifier.fillMaxWidth(),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color.White,
-                    unfocusedBorderColor = Color.Gray,
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White,
-                    cursorColor = Color.White,
-                    focusedLeadingIconColor = Color.White,
-                    unfocusedLeadingIconColor = Color.White,
-                    focusedTrailingIconColor = Color.White,
-                    unfocusedTrailingIconColor = Color.White,
-                    focusedPlaceholderColor = Color.Gray,
-                    unfocusedPlaceholderColor = Color.Gray
-                ),
-                placeholder = { Text("Enter Soldier ID", color = Color.Gray) },
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Number,
-                    imeAction = ImeAction.Search
-                ),
-                keyboardActions = KeyboardActions(
-                    onSearch = {
-                        coroutineScope.launch {
-                            viewModel.searchSoldierById(searchQuery)
-                            keyboardController?.hide()
-                        }
-                    }
-                ),
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Default.Search,
-                        contentDescription = "Search",
-                        tint = Color.White
-                    )
-                },
-                trailingIcon = {
-                    if (searchQuery.isNotEmpty()) {
-                        IconButton(onClick = { viewModel.updateSearchQuery("") }) {
-                            Icon(
-                                imageVector = Icons.Default.Clear,
-                                contentDescription = "Clear",
-                                tint = Color.White
-                            )
-                        }
-                    }
-                }
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Search Button
-            Button(
-                onClick = {
-                    viewModel.searchSoldierById(searchQuery)
-                    keyboardController?.hide()
-                },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFFFFF))
-            ) {
-                Text("Search",color = Color.Black)
-            }
-
             Spacer(modifier = Modifier.height(16.dp))
 
             // Loading indicator
@@ -171,13 +101,13 @@ fun SoldierDetailsScreen(
                     Spacer(modifier = Modifier.height(24.dp))
                 }
             } else if (!isLoading && errorMessage == null) {
-                // No search performed yet or no results
+                // No data available
                 Box(
                     modifier = Modifier.fillMaxWidth().padding(top = 32.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "Enter a soldier ID to view details",
+                        text = "No soldier details available",
                         color = Color.Gray,
                         textAlign = TextAlign.Center
                     )
@@ -377,7 +307,7 @@ fun PostingDetailsSection(postings: List<Posting>) {
             // Debug print to check postings
             println("Postings available: ${postings.size}")
             val selectedPosting = postings.random()
-            
+
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
@@ -397,9 +327,9 @@ fun PostingDetailsSection(postings: List<Posting>) {
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold
                     )
-                    
+
                     Spacer(modifier = Modifier.height(12.dp))
-                    
+
                     // Posting Date
                     Text(
                         text = "Date",
@@ -412,9 +342,9 @@ fun PostingDetailsSection(postings: List<Posting>) {
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold
                     )
-                    
+
                     Spacer(modifier = Modifier.height(12.dp))
-                    
+
                     // Posting Location (Pincode)
                     Text(
                         text = "Location (Pincode)",
@@ -483,7 +413,7 @@ fun VisitingDetailsSection(visits: List<Visited>) {
                                     fontWeight = FontWeight.Bold
                                 )
                             }
-                            
+
                             Column(horizontalAlignment = Alignment.End) {
                                 Text(
                                     text = "Pincode",
@@ -498,9 +428,9 @@ fun VisitingDetailsSection(visits: List<Visited>) {
                                 )
                             }
                         }
-                        
+
                         Spacer(modifier = Modifier.height(8.dp))
-                        
+
                         Text(
                             text = "Reason",
                             color = Color.Gray,
