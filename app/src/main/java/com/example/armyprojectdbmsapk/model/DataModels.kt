@@ -67,12 +67,11 @@ data class Battalion(
 
 data class BattalionDetail(
     val id: String = "",
-    val Battalion_name: String = "",  // Matches the Firestore field
-    val captain_id: Int = 0,
-    val total_capacity: Int = 0,
+    val battalion_name: String = "",
+    val captainId: Int = 0,
+    val totalCapacity: Int = 0,
     val year: Int = 0
 )
-
 /**
  * Weapon data model representing a military weapon
  */
@@ -153,3 +152,4 @@ data class Assign(
     val soldId: Int = 0,
     val type: String = ""
 )
+

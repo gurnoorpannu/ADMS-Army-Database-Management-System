@@ -20,6 +20,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -28,6 +29,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.armyprojectdbmsapk.screens.ADMSApp
+import com.example.armyprojectdbmsapk.screens.battalionDetailScreen.BattalionDetailScreen
+import com.example.armyprojectdbmsapk.screens.battalionDetailScreen.BattalionDetailScreenViewModel
+import com.example.armyprojectdbmsapk.screens.battalionScreen.BattalionDetailViewModel
 import com.example.armyprojectdbmsapk.screens.battalionScreen.BattalionListViewModel
 import com.example.armyprojectdbmsapk.screens.battalionScreen.BattalionsScreen
 import com.example.armyprojectdbmsapk.screens.databaseScreen.ExploreDatabaseScreen
@@ -97,6 +101,7 @@ fun ArmyNavHost(
     val soldierDetailsViewModel: SoldierViewModel = viewModel()
     val warScreenViewModel: WarScreenViewModel = viewModel()
     val battalionListViewModel: BattalionListViewModel = viewModel()
+    val battalionDetailViewModel: BattalionDetailViewModel = viewModel()
 
     NavHost(
         navController = navController,
@@ -189,8 +194,8 @@ fun ArmyNavHost(
             BattalionsScreen(
                 viewModel = battalionListViewModel,
                 onBattalionClick = { battalion ->
-                    // Navigate to battalion details screen
-                    navController.navigate("battalionDetail/${battalion.id}")
+                    // Navigate to battalion details screen with the battalion ID
+                    navController.navigate("battalion_detail/${battalion.id}")
                 },
                 onBackClick = {
                     navController.navigateUp()
@@ -199,18 +204,19 @@ fun ArmyNavHost(
         }
 
         // Battalion Detail Screen
-//        composable(
-//            route = "battalionDetail/{battalionId}",
-//            arguments = listOf(navArgument("battalionId") { type = NavType.StringType })
-//        ) { backStackEntry ->
-//            val battalionId = backStackEntry.arguments?.getString("battalionId") ?: ""
-//            BattalionsScreen(
-//                battalionId = battalionId,
-//                onBackClick = {
-//                    navController.navigateUp()
-//                }
-//            )
-//        }
+        composable(
+            route = "battalion_detail/{battalionId}",
+            arguments = listOf(navArgument("battalionId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val battalionId = backStackEntry.arguments?.getString("battalionId") ?: ""
+            val viewModel = viewModel<BattalionDetailScreenViewModel>()
+
+            BattalionDetailScreen(
+                viewModel = viewModel,
+                battalionId = battalionId,
+                onBackPressed = { navController.popBackStack() }
+            )
+        }
     }
 }
 

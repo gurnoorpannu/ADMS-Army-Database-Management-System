@@ -1,6 +1,5 @@
 package com.example.armyprojectdbmsapk.data
 
-//import com.example.armyprojectdbmsapk.model.Battalion
 import com.example.armyprojectdbmsapk.model.Battalion
 import com.example.armyprojectdbmsapk.model.BattalionDetail
 import com.example.armyprojectdbmsapk.model.Weapon
@@ -22,6 +21,9 @@ import kotlinx.coroutines.tasks.await
  */
 class FirebaseStorageHelper {
     private val firestore = FirebaseFirestore.getInstance()
+
+    private val battalionCollection = firestore.collection("Battalion")
+
 
     /**
      * Helper method to create a Soldier object from a document
@@ -593,23 +595,31 @@ class FirebaseStorageHelper {
      * Fetch battalion details by ID
      */
 
+    // Get detailed information for a specific battalion
     fun getBattalionDetail(
         battalionId: String,
         onSuccess: (BattalionDetail) -> Unit,
         onError: (Exception) -> Unit
     ) {
-        firestore.collection("Battalion").document(battalionId)
+        battalionCollection.document(battalionId)
             .get()
             .addOnSuccessListener { document ->
                 if (document != null && document.exists()) {
                     try {
+                        // Use the exact field names as in Firebase
+                        val BattalionName = document.getString("Battalion_name") ?: ""
+                        val captainId = document.getLong("captain_id")?.toInt() ?: 0
+                        val totalCapacity = document.getLong("total_capacity")?.toInt() ?: 0
+                        val year = document.getLong("year")?.toInt() ?: 0
+
                         val battalionDetail = BattalionDetail(
                             id = document.id,
-                            Battalion_name = document.getString("Battalion_name") ?: "",  // Firestore field is still lowercase
-                            captain_id = document.getLong("captain_id")?.toInt() ?: 0,
-                            total_capacity = document.getLong("total_capacity")?.toInt() ?: 0,
-                            year = document.getLong("year")?.toInt() ?: 0
+                            battalion_name = BattalionName,
+                            captainId = captainId,
+                            totalCapacity = totalCapacity,
+                            year = year
                         )
+
                         onSuccess(battalionDetail)
                     } catch (e: Exception) {
                         onError(e)

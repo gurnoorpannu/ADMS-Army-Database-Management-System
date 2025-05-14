@@ -79,25 +79,27 @@ fun WarScreen(
                         .weight(1f)
                         .padding(end = 8.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF4CAF50),
+                        containerColor = if (selectedTab == 0) Color(0xFF4CAF50) else Color(0xFF2C2C2C),
                         contentColor = Color.White
                     )
                 ) {
                     Text("Past Wars")
                 }
+
                 Button(
                     onClick = { selectedTab = 1 },
                     modifier = Modifier
                         .weight(1f)
                         .padding(start = 8.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF4CAF50),
+                        containerColor = if (selectedTab == 1) Color(0xFF4CAF50) else Color(0xFF2C2C2C),
                         contentColor = Color.White
                     )
                 ) {
                     Text("Ongoing Wars")
                 }
             }
+
 
             Spacer(modifier = Modifier.height(16.dp))
 

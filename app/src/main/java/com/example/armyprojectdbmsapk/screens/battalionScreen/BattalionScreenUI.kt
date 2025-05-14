@@ -125,6 +125,9 @@ fun BattalionsScreen(
     }
 }
 
+// Update in BattalionsScreen.kt file
+// In the BattalionItem composable to make the entire card clickable
+
 @Composable
 fun BattalionItem(
     battalion: Battalion,
@@ -133,7 +136,7 @@ fun BattalionItem(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick),
+            .clickable(onClick = onClick),  // This makes the entire card clickable
         colors = CardDefaults.cardColors(
             containerColor = Color(0xFF1E1E1E)
         ),
@@ -161,10 +164,12 @@ fun BattalionItem(
                 )
             }
 
+            // Make this icon also trigger the onClick behavior
             Icon(
                 imageVector = Icons.Default.ArrowForward,
                 contentDescription = "View Details",
-                tint = Color.Gray
+                tint = Color.Gray,
+                modifier = Modifier.clickable(onClick = onClick)
             )
         }
     }

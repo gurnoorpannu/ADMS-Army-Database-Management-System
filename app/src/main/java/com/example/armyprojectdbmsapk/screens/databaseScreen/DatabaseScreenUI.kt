@@ -45,8 +45,7 @@ fun ExploreDatabaseScreen(
                 .fillMaxSize()
                 .padding(bottom = 16.dp)
         ) {
-            // Top App Bar
-            TopAppBar(
+            CenterAlignedTopAppBar(
                 title = {
                     Text(
                         text = "Explore Database",
@@ -54,9 +53,7 @@ fun ExploreDatabaseScreen(
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Medium,
                             color = Color.White
-                        ),
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
+                        )
                     )
                 },
                 navigationIcon = {
@@ -68,10 +65,11 @@ fun ExploreDatabaseScreen(
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                     containerColor = Color(0xFF121212)
                 )
             )
+
 
             // Search Type Toggle
             Row(
