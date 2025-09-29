@@ -18,29 +18,29 @@
 
 ## ⚡ Features
 
-### 1️⃣ Soldier Management
+### 1.Soldier Management
 - Detailed soldier profiles: personal info, physical attributes, service records  
 - Track postings and visited locations  
 - Monitor status, rank, and medals  
 - Search soldiers by ID  
 
-### 2️⃣ Weapon Inventory
+### 2.Weapon Inventory
 - Complete weapon database with specifications  
 - Track quantity, caliber, range, manufacturer  
 - Search weapons by ID  
 - View weapon images  
 
-### 3️⃣ Battalion Management
+### 3.Battalion Management
 - View battalion capacity and personnel  
 - Track assignments and deployments  
 - Monitor battalion status  
 
-### 4️⃣ War Records
+### 4.War Records
 - Track ongoing and past wars  
 - View location, dates, and participants  
 - Maintain historical military records  
 
-### 5️⃣ Database Exploration
+### 5.Database Exploration
 - Interactive exploration of the database  
 - Real-time statistics for soldiers, weapons, battalions  
 - Search functionality for quick data access  
